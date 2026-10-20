@@ -85,22 +85,31 @@ function buildLeft({ pwd, branch, sessionName, cost }: Statusline): string {
   return left;
 }
 
+function formatThinkingLevel(thinkingLevel: string | null): string {
+  if (thinkingLevel === null || thinkingLevel === '') {
+    return '';
+  }
+
+  if (thinkingLevel === 'off') {
+    return ' • thinking off';
+  }
+
+  return ` • ${thinkingLevel}`;
+}
+
 function buildRight({
   model,
   thinkingLevel,
   provider,
   providerCount,
 }: Statusline): string {
-  let right = model ?? 'no-model';
+  const right = `${model ?? 'no-model'}${formatThinkingLevel(thinkingLevel)}`;
 
-  if (thinkingLevel !== null && thinkingLevel !== '') {
-    right +=
-      thinkingLevel === 'off' ? ' • thinking off' : ` • ${thinkingLevel}`;
+  if (provider !== null && provider !== '' && providerCount > 1) {
+    return `(${provider}) ${right}`;
   }
 
-  return provider !== null && provider !== '' && providerCount > 1
-    ? `(${provider}) ${right}`
-    : right;
+  return right;
 }
 
 export function renderStatusline(
