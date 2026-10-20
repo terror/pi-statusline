@@ -107,16 +107,13 @@ export function renderStatusline(
   statusline: Statusline,
   theme: Pick<Theme, 'fg'>
 ): string {
-  let left = theme.fg('dim', buildLeft(statusline));
+  const left = truncateToWidth(
+    theme.fg('dim', buildLeft(statusline)),
+    statusline.width,
+    theme.fg('dim', '...')
+  );
 
-  let leftWidth = visibleWidth(left);
-
-  if (leftWidth > statusline.width) {
-    left = truncateToWidth(left, statusline.width, theme.fg('dim', '...'));
-    leftWidth = visibleWidth(left);
-  }
-
-  const right = theme.fg('dim', buildRight(statusline));
+  const leftWidth = visibleWidth(left);
 
   const availableForRight = statusline.width - leftWidth - MIN_PADDING;
 
@@ -124,16 +121,17 @@ export function renderStatusline(
     return left;
   }
 
-  const shownRight =
-    visibleWidth(right) > availableForRight
-      ? truncateToWidth(right, availableForRight, '')
-      : right;
-
-  const padding = ' '.repeat(
-    Math.max(0, statusline.width - leftWidth - visibleWidth(shownRight))
+  const right = truncateToWidth(
+    theme.fg('dim', buildRight(statusline)),
+    availableForRight,
+    ''
   );
 
-  return left + theme.fg('dim', padding) + shownRight;
+  const padding = ' '.repeat(
+    Math.max(0, statusline.width - leftWidth - visibleWidth(right))
+  );
+
+  return left + theme.fg('dim', padding) + right;
 }
 
 function sanitizeStatus(text: string): string {
