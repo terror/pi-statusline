@@ -49,23 +49,22 @@ export function formatCwd(cwd: string, home: string | undefined): string {
   if (home === undefined || home === '') {
     return cwd;
   }
-  const resolvedCwd = resolve(cwd);
 
-  const resolvedHome = resolve(home);
+  const relativeToHome = relative(resolve(home), resolve(cwd));
 
-  const relativeToHome = relative(resolvedHome, resolvedCwd);
+  if (
+    relativeToHome === '..' ||
+    relativeToHome.startsWith(`..${sep}`) ||
+    isAbsolute(relativeToHome)
+  ) {
+    return cwd;
+  }
 
-  const isInsideHome =
-    relativeToHome === '' ||
-    (relativeToHome !== '..' &&
-      !relativeToHome.startsWith(`..${sep}`) &&
-      !isAbsolute(relativeToHome));
+  if (relativeToHome === '') {
+    return '~';
+  }
 
-  return isInsideHome
-    ? relativeToHome === ''
-      ? '~'
-      : `~${sep}${relativeToHome}`
-    : cwd;
+  return `~${sep}${relativeToHome}`;
 }
 
 function buildLeft({ pwd, branch, sessionName, cost }: Statusline): string {
