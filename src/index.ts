@@ -210,22 +210,21 @@ export default function (pi: ExtensionAPI) {
             theme
           );
 
-          const lines = [line];
-
           const statuses = footerData.getExtensionStatuses();
 
-          if (statuses.size > 0) {
-            const statusLine = Array.from(statuses.entries())
-              .sort(([a], [b]) => a.localeCompare(b))
-              .map(([, text]) => sanitizeStatus(text))
-              .join(' ');
-
-            lines.push(
-              truncateToWidth(statusLine, width, theme.fg('dim', '...'))
-            );
+          if (statuses.size === 0) {
+            return [line];
           }
 
-          return lines;
+          const statusLine = Array.from(statuses.entries())
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([, text]) => sanitizeStatus(text))
+            .join(' ');
+
+          return [
+            line,
+            truncateToWidth(statusLine, width, theme.fg('dim', '...')),
+          ];
         },
       };
     });
