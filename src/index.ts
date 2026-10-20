@@ -10,40 +10,39 @@ const BRANCH_SYMBOL = '\uE0A0';
 const MIN_PADDING = 2;
 
 export interface Statusline {
-  width: number;
-  pwd: string;
   branch: string | null;
-  sessionName: string | null;
   cost: number;
   model: string | null;
-  thinkingLevel: string | null;
   provider: string | null;
   providerCount: number;
+  pwd: string;
+  sessionName: string | null;
+  thinkingLevel: string | null;
+  width: number;
 }
 
 export function sessionCost(entries: readonly SessionEntry[]): number {
-  let cost = 0;
-
-  for (const entry of entries) {
-    if (entry.type === 'usage') {
-      cost += entry.usage.cost.total;
-    } else if (entry.type === 'message' && entry.message.role === 'assistant') {
-      cost += entry.message.usage.cost.total;
-    } else if (
-      entry.type === 'message' &&
-      entry.message.role === 'toolResult' &&
-      entry.message.usage
-    ) {
-      cost += entry.message.usage.cost.total;
-    } else if (
-      (entry.type === 'branch_summary' || entry.type === 'compaction') &&
-      entry.usage
-    ) {
-      cost += entry.usage.cost.total;
+  return entries.reduce((cost, entry) => {
+    switch (entry.type) {
+      case 'branch_summary':
+      case 'compaction':
+      case 'usage':
+        return cost + (entry.usage?.cost.total ?? 0);
+      case 'message':
+        return entry.message.role === 'assistant' ||
+          entry.message.role === 'toolResult'
+          ? cost + (entry.message.usage?.cost.total ?? 0)
+          : cost;
+      case 'context_edit':
+      case 'custom':
+      case 'custom_message':
+      case 'label':
+      case 'model_change':
+      case 'session_info':
+      case 'thinking_level_change':
+        return cost;
     }
-  }
-
-  return cost;
+  }, 0);
 }
 
 export function formatCwd(cwd: string, home: string | undefined): string {
